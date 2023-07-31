@@ -3,40 +3,37 @@ package database
 import (
 	"fmt"
 	"ginvue/pkg/model"
+	"log"
 
+	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-var DB = InitDB()
+var DB *gorm.DB
 
 func GetDB() *gorm.DB {
 	return DB
 }
 
-func InitDB() *gorm.DB {
-	host := "localhost"
-	port := "3306"
-	database := "gogin2"
-	username := "goGin"
-	passwd := "123456"
-	charset := "utf8mb4"
-
+func InitDB() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True&loc=Local",
-		username,
-		passwd,
-		host,
-		port,
-		database,
-		charset,
+		viper.Get("database.username"),
+		viper.Get("database.passwd"),
+		viper.Get("database.host"),
+		viper.Get("database.port"),
+		viper.Get("database.db"),
+		viper.Get("database.charset"),
 	)
 	db, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
-		panic("Failed to connect database, err:" + err.Error())
+		log.Print("连接至数据库失败\n")
+		panic("Failed to connect database, err :" + err.Error())
 	} else {
-		fmt.Printf("数据库启动成功!")
+		log.Print("数据库启动成功")
 	}
+	DB = db
 	db.AutoMigrate(&model.User{})
 
-	return db
+	DB = db
 }
